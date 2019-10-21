@@ -8,37 +8,33 @@ class WelcomeMail {
   }
 
   async handle({ data }) {
-    const {
-      planName,
-      studentName,
-      studentEmail,
-      start_date,
-      end_date,
-      totalPrice,
-      monthPrice,
-    } = data;
+    const { emailData } = data;
 
     console.log('A fila executou');
 
     await Mail.sendMail({
-      to: `${studentName} <${studentEmail}>`,
+      to: `${emailData.studentName} <${emailData.studentEmail}>`,
       subject: 'Confirmação de matrícula',
       template: 'welcome',
       context: {
-        studentName,
-        planName,
+        studentName: emailData.studentName,
+        planName: emailData.planName,
         startDate: format(
-          parseISO(start_date),
+          parseISO(emailData.start_date),
           "'dia' dd 'de' MMMM 'de' yyyy",
           {
             locale: pt,
           }
         ),
-        endDate: format(parseISO(end_date), "'dia' dd 'de' MMMM 'de' yyyy", {
-          locale: pt,
-        }),
-        totalPrice,
-        monthPrice,
+        endDate: format(
+          parseISO(emailData.end_date),
+          "'dia' dd 'de' MMMM 'de' yyyy",
+          {
+            locale: pt,
+          }
+        ),
+        totalPrice: emailData.totalPrice,
+        monthPrice: emailData.monthPrice,
       },
     });
   }

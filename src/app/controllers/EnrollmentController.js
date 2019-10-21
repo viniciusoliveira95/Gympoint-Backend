@@ -82,7 +82,7 @@ class EnrollmentController {
     /**
      * send welcome e-mail
      */
-    await Queue.add(WelcomeMail.key, {
+    const emailData = {
       planName: plan.title,
       studentName: student.name,
       studentEmail: student.email,
@@ -90,7 +90,9 @@ class EnrollmentController {
       end_date,
       totalPrice: price,
       monthPrice: plan.price,
-    });
+    };
+
+    await Queue.add(WelcomeMail.key, { emailData });
 
     return res.json(enrollment);
   }
