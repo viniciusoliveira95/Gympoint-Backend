@@ -1,4 +1,5 @@
 import Sequelize, { Model } from 'sequelize';
+import { isAfter } from 'date-fns';
 
 class Enrollment extends Model {
   static init(sequelize) {
@@ -7,6 +8,12 @@ class Enrollment extends Model {
         start_date: Sequelize.DATE,
         end_date: Sequelize.DATE,
         price: Sequelize.NUMERIC,
+        active: {
+          type: Sequelize.VIRTUAL,
+          get() {
+            return isAfter(this.end_date, new Date());
+          },
+        },
       },
       {
         sequelize,
