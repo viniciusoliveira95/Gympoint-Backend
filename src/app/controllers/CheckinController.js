@@ -14,7 +14,7 @@ class CheckinController {
     const student = await Student.findByPk(studentId);
 
     if (!student) {
-      return res.status(400).json({ error: 'Student not found' });
+      return res.status(400).json({ error: 'Aluno não existe' });
     }
 
     /**
@@ -28,7 +28,7 @@ class CheckinController {
     });
 
     if (checkins.length >= 5) {
-      return res.status(400).json({ error: 'Checkins exceeded limit' });
+      return res.status(400).json({ error: 'Limite de checkins foi atingido' });
     }
 
     const checkin = await Checkin.create({ student_id: studentId });
@@ -46,7 +46,7 @@ class CheckinController {
     const student = await Student.findByPk(studentId);
 
     if (!student) {
-      return res.status(400).json({ error: 'Student not found' });
+      return res.status(400).json({ error: 'Aluno não existe' });
     }
 
     const checkins = await Checkin.findAll({

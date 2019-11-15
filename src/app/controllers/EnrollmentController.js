@@ -33,7 +33,7 @@ class EnrollmentController {
     const student = await Student.findByPk(student_id);
 
     if (!student) {
-      return res.status(400).json({ error: 'Student does not exist' });
+      return res.status(400).json({ error: 'Aluno não existe' });
     }
 
     /**
@@ -44,7 +44,7 @@ class EnrollmentController {
     });
 
     if (enrollmentExists) {
-      return res.status(400).json({ error: 'Student is already enrolled' });
+      return res.status(400).json({ error: 'O aluno já está matrículado' });
     }
 
     /**
@@ -53,7 +53,7 @@ class EnrollmentController {
     const plan = await Plan.findByPk(plan_id);
 
     if (!plan) {
-      return res.status(400).json({ error: 'Plan does not exist' });
+      return res.status(400).json({ error: 'Plano não existe' });
     }
 
     /**
@@ -62,7 +62,9 @@ class EnrollmentController {
     const dayStart = zonedTimeToUtc(parseISO(start_date), 'America/Sao_Paulo');
 
     if (isBefore(dayStart, Date.UTC(new Date()))) {
-      return res.status(400).json({ error: 'Past dates are not permitted' });
+      return res
+        .status(400)
+        .json({ error: 'Data de início não pode estar no passado' });
     }
 
     /**
@@ -159,7 +161,7 @@ class EnrollmentController {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: 'Validação falhou' });
     }
 
     /**
@@ -170,7 +172,7 @@ class EnrollmentController {
     const enrollment = await Enrollment.findByPk(enrollmentId);
 
     if (!enrollment) {
-      return res.status(400).json({ error: 'Enrollment does not exist' });
+      return res.status(400).json({ error: 'Matrícula não existe' });
     }
 
     /**
@@ -183,7 +185,7 @@ class EnrollmentController {
     });
 
     if (hasAnotherEnrollment) {
-      return res.status(400).json({ error: 'Student is already enrolled' });
+      return res.status(400).json({ error: 'O aluno já está matrículado' });
     }
 
     /**
@@ -192,7 +194,7 @@ class EnrollmentController {
     const plan = await Plan.findByPk(plan_id);
 
     if (!plan) {
-      return res.status(400).json({ error: 'Plan does not exist' });
+      return res.status(400).json({ error: 'Plano não existe' });
     }
 
     /**
@@ -201,7 +203,9 @@ class EnrollmentController {
     const dayStart = zonedTimeToUtc(parseISO(start_date), 'America/Sao_Paulo');
 
     if (isBefore(dayStart, Date.UTC(new Date()))) {
-      return res.status(400).json({ error: 'Past dates are not permitted' });
+      return res
+        .status(400)
+        .json({ error: 'Data de início não pode estar no passado' });
     }
 
     /**
@@ -235,12 +239,12 @@ class EnrollmentController {
     const enrollment = await Enrollment.findByPk(enrollmentId);
 
     if (!enrollment) {
-      return res.status(400).json({ error: 'Enrollment does not exist' });
+      return res.status(400).json({ error: 'Matrícula não existe' });
     }
 
     enrollment.destroy();
 
-    return res.json({ sucess: 'Deleted' });
+    return res.json({ sucess: 'Deletado' });
   }
 
   async show(req, res) {
@@ -263,7 +267,7 @@ class EnrollmentController {
     });
 
     if (!enrollment) {
-      return res.status(400).json({ error: 'Enrollment does not exist' });
+      return res.status(400).json({ error: 'Matrícula não existe' });
     }
 
     enrollment.start_date = utcToZonedTime(

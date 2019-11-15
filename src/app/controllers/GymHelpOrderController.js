@@ -16,7 +16,7 @@ class GymHelpOrderContoller {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: 'Validação falhou' });
     }
 
     /**
@@ -31,11 +31,13 @@ class GymHelpOrderContoller {
     });
 
     if (!helpOrder) {
-      return res.status(400).json({ error: 'Help order does not exist' });
+      return res.status(400).json({ error: 'Pedido de ajuda não existe' });
     }
 
     if (helpOrder.answer !== null) {
-      return res.status(400).json({ error: 'Help order is already answered' });
+      return res
+        .status(400)
+        .json({ error: 'Pedido de ajuda já foi respondido' });
     }
 
     helpOrder.answer = req.body.answer;

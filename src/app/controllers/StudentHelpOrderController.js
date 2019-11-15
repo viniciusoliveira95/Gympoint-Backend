@@ -13,7 +13,7 @@ class StudentHelpOrderController {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: 'Validação falhou' });
     }
     /**
      * Check if student exists
@@ -23,7 +23,7 @@ class StudentHelpOrderController {
     const student = await Student.findByPk(studentId);
 
     if (!student) {
-      return res.status(400).json({ error: 'Student not found' });
+      return res.status(400).json({ error: 'Aluno não existe' });
     }
 
     const { student_id, question } = await HelpOrder.create({
@@ -47,7 +47,7 @@ class StudentHelpOrderController {
     const student = await Student.findByPk(studentId);
 
     if (!student) {
-      return res.status(400).json({ error: 'Student not found' });
+      return res.status(400).json({ error: 'Aluno não existe' });
     }
 
     const helpOrder = await HelpOrder.findAll({

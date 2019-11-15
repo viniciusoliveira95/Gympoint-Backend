@@ -18,7 +18,7 @@ class PlanController {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: 'Validação falhou' });
     }
 
     /**
@@ -30,7 +30,9 @@ class PlanController {
     });
 
     if (planNameExists) {
-      return res.status(400).json({ error: 'Plan name is already in use' });
+      return res
+        .status(400)
+        .json({ error: 'Nome do plano já está sendo utilizado' });
     }
 
     const { id, title, duration, price } = await Plan.create(req.body);
@@ -72,7 +74,7 @@ class PlanController {
     const plan = await Plan.findByPk(planId);
 
     if (!plan) {
-      return res.status(400).json({ error: 'Plan does not exist' });
+      return res.status(400).json({ error: 'Plano não existe' });
     }
 
     return res.json(plan);
@@ -91,7 +93,7 @@ class PlanController {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: 'Validação falhou' });
     }
 
     /**
@@ -102,7 +104,7 @@ class PlanController {
     const plan = await Plan.findByPk(planId);
 
     if (!plan) {
-      return res.status(400).json({ error: 'Plan does not exist' });
+      return res.status(400).json({ error: 'Plano não existe' });
     }
 
     /**
@@ -116,7 +118,9 @@ class PlanController {
       });
 
       if (planNameExists) {
-        return res.status(400).json({ error: 'Plan name is already in use' });
+        return res
+          .status(400)
+          .json({ error: 'Nome do plano já está sendo utilizado' });
       }
     }
 
@@ -131,12 +135,12 @@ class PlanController {
     const plan = await Plan.findByPk(planId);
 
     if (!plan) {
-      return res.status(400).json({ error: 'Plan does not exist' });
+      return res.status(400).json({ error: 'Plano não existe' });
     }
 
     plan.destroy();
 
-    return res.json({ sucess: 'Deleted' });
+    return res.json({ sucess: 'Deletado' });
   }
 }
 
