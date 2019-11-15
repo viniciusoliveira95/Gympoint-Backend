@@ -1,21 +1,52 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
+import { isAfter } from 'date-fns';
 
 import Student from '../models/Student';
+import Enrollment from '../models/Enrollment';
 
 class StudentController {
   async index(req, res) {
-    const { name, page = 1 } = req.query;
+    const pageSize = 20;
 
-    const students = await Student.findAll({
-      attributes: ['id', 'name', 'email', 'idade', 'peso', 'altura'],
+    const { name, page } = req.query;
+
+    const options = {
+      attributes: ['id', 'name', 'email', 'idade', 'activeEnrollment'],
       order: ['name'],
-      limit: 20,
-      offset: (page - 1) * 20,
+      page: page || null,
+      paginate: page ? pageSize : null,
       where: {
         name: { [Op.iLike]: `${name}%` },
       },
+      include: [
+        {
+          model: Enrollment,
+          as: 'enrollment',
+          attributes: ['start_date', 'end_date'],
+        },
+      ],
+    };
+
+    const { docs, pages } = await Student.paginate(options);
+
+    docs.map(student => {
+      if (student.enrollment) {
+        student.activeEnrollment =
+          isAfter(student.enrollment.end_date, new Date()) &&
+          isAfter(new Date(), student.enrollment.start_date);
+      } else {
+        student.activeEnrollment = false;
+      }
+
+      return student;
     });
+
+    const students = {
+      studentList: docs,
+      nextPage: !(page >= pages),
+      prevPage: !(page <= 1),
+    };
 
     return res.json(students);
   }
@@ -31,11 +62,9 @@ class StudentController {
         .positive()
         .required(),
       peso: Yup.number()
-        .integer()
         .positive()
         .required(),
       altura: Yup.number()
-        .integer()
         .positive()
         .required(),
     });
@@ -65,26 +94,30 @@ class StudentController {
 
   async update(req, res) {
     const schema = Yup.object().shape({
-      name: Yup.string(),
-      email: Yup.string().email(),
+      name: Yup.string().required(),
+      email: Yup.string()
+        .email()
+        .required(),
       idade: Yup.number()
         .integer()
-        .positive(),
+        .positive()
+        .required(),
       peso: Yup.number()
-        .integer()
-        .positive(),
+        .positive()
+        .required(),
       altura: Yup.number()
-        .integer()
-        .positive(),
+        .positive()
+        .required(),
     });
 
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation fails' });
     }
 
-    const { id, email } = req.body;
+    const { studentId } = req.params;
+    const { email } = req.body;
 
-    const student = await Student.findByPk(id);
+    const student = await Student.findByPk(studentId);
 
     if (!student) {
       return res.status(401).json({ error: 'Student not found' });
@@ -99,6 +132,41 @@ class StudentController {
     }
 
     const { name, idade, peso, altura } = await student.update(req.body);
+
+    return res.json({
+      studentId,
+      name,
+      email,
+      idade,
+      peso,
+      altura,
+    });
+  }
+
+  async delete(req, res) {
+    const { studentId } = req.params;
+
+    const student = await Student.findByPk(studentId);
+
+    if (!student) {
+      return res.status(400).json({ error: 'Student does not exist' });
+    }
+
+    student.destroy();
+
+    return res.json({ sucess: 'Deleted' });
+  }
+
+  async show(req, res) {
+    const { studentId } = req.params;
+
+    const student = await Student.findByPk(studentId);
+
+    if (!student) {
+      return res.status(400).json({ error: 'Student does not exist' });
+    }
+
+    const { id, name, email, idade, peso, altura } = student;
 
     return res.json({
       id,

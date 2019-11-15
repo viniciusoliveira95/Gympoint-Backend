@@ -1,4 +1,5 @@
 import Sequelize, { Model } from 'sequelize';
+import sequelizePaginate from 'sequelize-paginate';
 import { isAfter } from 'date-fns';
 
 class Enrollment extends Model {
@@ -11,7 +12,10 @@ class Enrollment extends Model {
         active: {
           type: Sequelize.VIRTUAL,
           get() {
-            return isAfter(this.end_date, new Date());
+            return (
+              isAfter(this.end_date, new Date()) &&
+              isAfter(new Date(), this.start_date)
+            );
           },
         },
       },
@@ -19,6 +23,8 @@ class Enrollment extends Model {
         sequelize,
       }
     );
+
+    sequelizePaginate.paginate(Enrollment);
 
     return this;
   }

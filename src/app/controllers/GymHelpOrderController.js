@@ -52,15 +52,34 @@ class GymHelpOrderContoller {
   }
 
   async index(req, res) {
-    const { page = 1 } = req.query;
+    const pageSize = 20;
 
-    const helpOrder = await HelpOrder.findAll({
-      limit: 20,
-      offset: (page - 1) * 20,
+    const { page } = req.query;
+
+    const options = {
+      attributes: ['id', 'question'],
+      order: [['created_at', 'DESC']],
+      page: page || null,
+      paginate: page ? pageSize : null,
       where: { answer: null },
-    });
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name'],
+        },
+      ],
+    };
 
-    return res.json(helpOrder);
+    const { docs, pages } = await HelpOrder.paginate(options);
+
+    const helpOrders = {
+      helpOrderList: docs,
+      nextPage: !(page >= pages),
+      prevPage: !(page <= 1),
+    };
+
+    return res.json(helpOrders);
   }
 }
 

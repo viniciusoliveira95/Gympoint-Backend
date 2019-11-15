@@ -1,6 +1,7 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
-import { startOfDay, endOfDay, parseISO, isBefore, addMonths } from 'date-fns';
+import { parseISO, isBefore, addMonths } from 'date-fns';
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 
 import WelcomeMail from '../jobs/WelcomeMail';
 import Queue from '../../lib/Queue';
@@ -21,7 +22,7 @@ class EnrollmentController {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: 'Validação falhou' });
     }
 
     const { plan_id, student_id, start_date } = req.body;
@@ -58,16 +59,16 @@ class EnrollmentController {
     /**
      * Check for past dates
      */
-    const dayStart = startOfDay(parseISO(start_date));
+    const dayStart = zonedTimeToUtc(parseISO(start_date), 'America/Sao_Paulo');
 
-    if (isBefore(dayStart, new Date())) {
+    if (isBefore(dayStart, Date.UTC(new Date()))) {
       return res.status(400).json({ error: 'Past dates are not permitted' });
     }
 
     /**
      * calculate end_date and total price
      */
-    const end_date = endOfDay(addMonths(dayStart, plan.duration));
+    const end_date = addMonths(dayStart, plan.duration);
 
     const price = plan.price * plan.duration;
 
@@ -98,26 +99,51 @@ class EnrollmentController {
   }
 
   async index(req, res) {
-    const { page = 1 } = req.query;
+    const pageSize = 20;
 
-    const enrollments = await Enrollment.findAll({
-      attributes: ['id', 'start_date', 'end_date', 'price', 'active'],
-      order: ['start_date'],
-      limit: 20,
-      offset: (page - 1) * 20,
+    const { page } = req.query;
+
+    const options = {
+      attributes: ['id', 'start_date', 'end_date', 'active'],
+      page: page || null,
+      paginate: page ? pageSize : null,
+      order: [[{ model: Student, as: 'student' }, 'name', 'asc']],
       include: [
         {
           model: Student,
           as: 'student',
-          attributes: ['name', 'email'],
+          attributes: ['name', 'id'],
         },
         {
           model: Plan,
           as: 'plan',
-          attributes: ['title', 'price'],
+          attributes: ['id', 'duration', 'title', 'price'],
         },
       ],
+      // order: [{ model: Student, as: 'student' }, 'updated_at', 'asc'],
+    };
+
+    const { docs, pages } = await Enrollment.paginate(options);
+
+    docs.map(enrollment => {
+      enrollment.start_date = utcToZonedTime(
+        enrollment.start_date,
+        'America/Sao_Paulo'
+      );
+
+      enrollment.end_date = utcToZonedTime(
+        enrollment.end_date,
+        'America/Sao_Paulo'
+      );
+
+      return enrollment;
     });
+
+    const enrollments = {
+      enrollmentList: docs,
+      nextPage: !(page >= pages),
+      prevPage: !(page <= 1),
+    };
 
     return res.json(enrollments);
   }
@@ -130,10 +156,6 @@ class EnrollmentController {
       plan_id: Yup.number().required(),
       student_id: Yup.number().required(),
       start_date: Yup.date().required(),
-      end_date: Yup.date().required(),
-      price: Yup.number()
-        .positive()
-        .required(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -154,7 +176,7 @@ class EnrollmentController {
     /**
      * Check if the student has another enrollment
      */
-    const { plan_id, student_id, start_date, end_date, price } = req.body;
+    const { plan_id, student_id, start_date } = req.body;
 
     const hasAnotherEnrollment = await Enrollment.findOne({
       where: { id: { [Op.not]: enrollmentId }, student_id },
@@ -176,9 +198,9 @@ class EnrollmentController {
     /**
      * Check for past dates
      */
-    const dayStart = startOfDay(parseISO(start_date));
+    const dayStart = zonedTimeToUtc(parseISO(start_date), 'America/Sao_Paulo');
 
-    if (isBefore(dayStart, new Date())) {
+    if (isBefore(dayStart, Date.UTC(new Date()))) {
       return res.status(400).json({ error: 'Past dates are not permitted' });
     }
 
@@ -186,19 +208,15 @@ class EnrollmentController {
      * Check if start_date < end_date
      */
 
-    const dayEnd = endOfDay(parseISO(end_date));
+    const end_date = addMonths(dayStart, plan.duration);
 
-    if (isBefore(dayEnd, dayStart)) {
-      return res
-        .status(400)
-        .json({ error: 'End date cannot be less than start date' });
-    }
+    const price = plan.price * plan.duration;
 
     enrollment.update({
       student_id,
       plan_id,
       start_date: dayStart,
-      end_date: dayEnd,
+      end_date,
       price,
     });
 
@@ -206,7 +224,7 @@ class EnrollmentController {
       student_id,
       plan_id,
       start_date: dayStart,
-      end_date: dayEnd,
+      end_date,
       price,
     });
   }
@@ -223,6 +241,37 @@ class EnrollmentController {
     enrollment.destroy();
 
     return res.json({ sucess: 'Deleted' });
+  }
+
+  async show(req, res) {
+    const { enrollmentId } = req.params;
+
+    const enrollment = await Enrollment.findByPk(enrollmentId, {
+      attributes: ['id', 'start_date'],
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['id', 'name'],
+        },
+        {
+          model: Plan,
+          as: 'plan',
+          attributes: ['id', 'duration', 'title', 'price'],
+        },
+      ],
+    });
+
+    if (!enrollment) {
+      return res.status(400).json({ error: 'Enrollment does not exist' });
+    }
+
+    enrollment.start_date = utcToZonedTime(
+      enrollment.start_date,
+      'America/Sao_Paulo'
+    );
+
+    return res.json(enrollment);
   }
 }
 

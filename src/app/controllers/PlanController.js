@@ -44,10 +44,36 @@ class PlanController {
   }
 
   async index(req, res) {
-    const plan = await Plan.findAll({
+    const pageSize = 20;
+
+    const { page } = req.query;
+
+    const options = {
       attributes: ['id', 'title', 'duration', 'price'],
       order: ['price'],
-    });
+      page: page || null,
+      paginate: page ? pageSize : null,
+    };
+
+    const { docs, pages } = await Plan.paginate(options);
+
+    const plans = {
+      planList: docs,
+      nextPage: !(page >= pages),
+      prevPage: !(page <= 1),
+    };
+
+    return res.json(plans);
+  }
+
+  async show(req, res) {
+    const { planId } = req.params;
+
+    const plan = await Plan.findByPk(planId);
+
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan does not exist' });
+    }
 
     return res.json(plan);
   }

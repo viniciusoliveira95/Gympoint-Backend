@@ -9,7 +9,6 @@ class AnswerHelpOrderMail {
 
   async handle({ data }) {
     const { helpOrder } = data;
-    console.log(helpOrder);
 
     console.log('A fila executou');
 
