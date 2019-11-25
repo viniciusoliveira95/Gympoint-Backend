@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
 import { parseISO, isBefore, addMonths } from 'date-fns';
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { zonedTimeToUtc } from 'date-fns-tz';
 
 import WelcomeMail from '../jobs/WelcomeMail';
 import Queue from '../../lib/Queue';
@@ -126,20 +126,6 @@ class EnrollmentController {
     };
 
     const { docs, pages } = await Enrollment.paginate(options);
-
-    docs.map(enrollment => {
-      enrollment.start_date = utcToZonedTime(
-        enrollment.start_date,
-        'America/Sao_Paulo'
-      );
-
-      enrollment.end_date = utcToZonedTime(
-        enrollment.end_date,
-        'America/Sao_Paulo'
-      );
-
-      return enrollment;
-    });
 
     const enrollments = {
       enrollmentList: docs,
@@ -269,11 +255,6 @@ class EnrollmentController {
     if (!enrollment) {
       return res.status(400).json({ error: 'Matrícula não existe' });
     }
-
-    enrollment.start_date = utcToZonedTime(
-      enrollment.start_date,
-      'America/Sao_Paulo'
-    );
 
     return res.json(enrollment);
   }

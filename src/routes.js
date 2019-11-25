@@ -7,12 +7,15 @@ import EnrollmentController from './app/controllers/EnrollmentController';
 import CheckinController from './app/controllers/CheckinController';
 import StudentHelpOrderController from './app/controllers/StudentHelpOrderController';
 import GymHelpOrderController from './app/controllers/GymHelpOrderController';
+import StudentSessionController from './app/controllers/StudentSessionController';
 
 import authMiddleware from './app/middlewares/auth';
 
 const routes = new Router();
 
 routes.post('/sessions', SessionController.store);
+
+routes.post('/students/sessions', StudentSessionController.store);
 
 routes.post('/students/:studentId/checkins', CheckinController.store);
 routes.get('/students/:studentId/checkins', CheckinController.index);

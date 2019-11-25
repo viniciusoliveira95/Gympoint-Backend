@@ -38,11 +38,10 @@ class StudentHelpOrderController {
   }
 
   async index(req, res) {
-    /**
-     * Check if student exists
-     */
+    const pageSize = 5;
+
     const { studentId } = req.params;
-    const { page = 1 } = req.query;
+    const { page } = req.query;
 
     const student = await Student.findByPk(studentId);
 
@@ -50,15 +49,24 @@ class StudentHelpOrderController {
       return res.status(400).json({ error: 'Aluno não existe' });
     }
 
-    const helpOrder = await HelpOrder.findAll({
-      limit: 20,
-      offset: (page - 1) * 20,
+    const options = {
+      order: [['createdAt', 'DESC']],
+      page: page || null,
+      paginate: page ? pageSize : null,
       where: {
         student_id: studentId,
       },
-    });
+    };
 
-    return res.json(helpOrder);
+    const { docs, pages } = await HelpOrder.paginate(options);
+
+    const helpOrders = {
+      helpOrderList: docs,
+      nextPage: !(page >= pages),
+      prevPage: !(page <= 1),
+    };
+
+    return res.json(helpOrders);
   }
 }
 

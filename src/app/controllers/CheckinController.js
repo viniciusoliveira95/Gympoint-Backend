@@ -31,17 +31,25 @@ class CheckinController {
       return res.status(400).json({ error: 'Limite de checkins foi atingido' });
     }
 
-    const checkin = await Checkin.create({ student_id: studentId });
+    const latestCheckinCount = await Checkin.max('checkin_count', {
+      where: { student_id: studentId },
+    });
+
+    const checkin_count = latestCheckinCount ? latestCheckinCount + 1 : 1;
+
+    const checkin = await Checkin.create({
+      student_id: studentId,
+      checkin_count,
+    });
 
     return res.json(checkin);
   }
 
   async index(req, res) {
-    /**
-     * Check if student exists
-     */
+    const pageSize = 20;
+
     const { studentId } = req.params;
-    const { page = 1 } = req.query;
+    const { page } = req.query;
 
     const student = await Student.findByPk(studentId);
 
@@ -49,13 +57,23 @@ class CheckinController {
       return res.status(400).json({ error: 'Aluno não existe' });
     }
 
-    const checkins = await Checkin.findAll({
-      limit: 20,
-      offset: (page - 1) * 20,
+    const options = {
+      page: page || null,
+      paginate: page ? pageSize : null,
       where: {
         student_id: studentId,
       },
-    });
+      order: [['checkin_count', 'DESC']],
+    };
+
+    const { docs, pages } = await Checkin.paginate(options);
+
+    const checkins = {
+      checkinList: docs,
+      nextPage: !(page >= pages),
+      prevPage: !(page <= 1),
+    };
+
     return res.json(checkins);
   }
 }

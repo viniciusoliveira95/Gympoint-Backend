@@ -1,13 +1,18 @@
-import { Model } from 'sequelize';
+import Sequelize, { Model } from 'sequelize';
+import sequelizePaginate from 'sequelize-paginate';
 
 class Checkin extends Model {
   static init(sequelize) {
     super.init(
-      {},
+      {
+        checkin_count: Sequelize.INTEGER,
+      },
       {
         sequelize,
       }
     );
+
+    sequelizePaginate.paginate(Checkin);
 
     return this;
   }
