@@ -5,3 +5,7 @@ Docker: 2 containers semelhantes aos usados no cusro
   - redis:apine
  
  OBS: Precisei trocar as portas para o postgress e o redis. No arquivo .env.example fica explícito isso
+ 
+ E-mail: semelhante ao utilizado no curso
+ 
+ Queue: semelhante ao utilizado no curso
