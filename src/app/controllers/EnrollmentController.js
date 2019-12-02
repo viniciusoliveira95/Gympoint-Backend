@@ -91,8 +91,8 @@ class EnrollmentController {
       studentEmail: student.email,
       start_date: dayStart,
       end_date,
-      totalPrice: price,
-      monthPrice: plan.price,
+      totalPrice: enrollment.price.toString().replace('.', ','),
+      monthPrice: plan.price.toString().replace('.', ','),
     };
 
     await Queue.add(WelcomeMail.key, { emailData });
