@@ -101,7 +101,7 @@ class EnrollmentController {
   }
 
   async index(req, res) {
-    const pageSize = 20;
+    const pageSize = 8;
 
     const { page } = req.query;
 
