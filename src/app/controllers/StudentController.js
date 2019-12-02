@@ -52,6 +52,9 @@ class StudentController {
   }
 
   async store(req, res) {
+    /**
+     * Fields validation
+     */
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       email: Yup.string()
@@ -75,9 +78,12 @@ class StudentController {
 
     const { email } = req.body;
 
-    const emaiExists = await Student.findOne({ where: { email } });
+    /**
+     * check if e-mail is already in use
+     */
+    const emailExists = await Student.findOne({ where: { email } });
 
-    if (emaiExists) {
+    if (emailExists) {
       return res.status(400).json({
         error: 'Esse e-mail já está sendo utilizado por outro aluno',
       });
@@ -96,6 +102,9 @@ class StudentController {
   }
 
   async update(req, res) {
+    /**
+     * Fields validation
+     */
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       email: Yup.string()
@@ -120,12 +129,18 @@ class StudentController {
     const { studentId } = req.params;
     const { email } = req.body;
 
+    /**
+     * Chek if student exists
+     */
     const student = await Student.findByPk(studentId);
 
     if (!student) {
       return res.status(401).json({ error: 'Aluno não existe' });
     }
 
+    /**
+     * check if e-mail is already in use
+     */
     if (email && email !== student.email) {
       const emaiExists = await Student.findOne({ where: { email } });
 

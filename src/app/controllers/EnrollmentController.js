@@ -122,7 +122,6 @@ class EnrollmentController {
           attributes: ['id', 'duration', 'title', 'price'],
         },
       ],
-      // order: [{ model: Student, as: 'student' }, 'updated_at', 'asc'],
     };
 
     const { docs, pages } = await Enrollment.paginate(options);
@@ -197,7 +196,6 @@ class EnrollmentController {
     /**
      * Check if start_date < end_date
      */
-
     const end_date = addMonths(dayStart, plan.duration);
 
     const price = plan.price * plan.duration;

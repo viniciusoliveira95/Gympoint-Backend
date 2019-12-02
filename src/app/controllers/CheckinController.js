@@ -31,6 +31,9 @@ class CheckinController {
       return res.status(400).json({ error: 'Limite de checkins foi atingido' });
     }
 
+    /**
+     * Generate checkin count
+     */
     const latestCheckinCount = await Checkin.max('checkin_count', {
       where: { student_id: studentId },
     });
